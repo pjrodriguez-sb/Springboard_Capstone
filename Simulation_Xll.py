@@ -1,0 +1,123 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Sat Jan 30 12:47:16 2021
+
+@author: pedrorodriguez
+"""
+
+import simpy
+import random
+
+print(f'STARTING SIMULATION')
+print(f'------------------------------')
+
+
+#-----------------------------------------------------
+units_made = 0
+
+#Units
+units_capacity = 1200
+initial_units = 400
+
+#station_2
+pre_station_2_capacity = 60 * 11
+post_station_2_capacity = 60 * 11
+
+#dispatch
+dispatch_capacity = 1200
+
+#-----------------------------------------------------
+
+units = []
+pre_station_2 = []
+
+#-----------------------------------------------------
+
+num_station_1 = 1
+mean_station_1 = 17
+std_station_1 = 1
+
+num_station_2 = 1
+mean_station_2 = 13
+std_station_2 = 2
+
+num_station_3 = 1
+mean_station_3 = 16
+std_station_3 = 1
+
+#-----------------------------------------------------
+class Production_line:
+    def __init__(self, env):
+        self.units = simpy.Container(env, capacity= units_capacity, init= initial_units)
+        self.pre_station_2 = simpy.Container(env, capacity= pre_station_2_capacity, init= 63)
+        self.post_station_2 = simpy.Container(env, capacity= post_station_2_capacity, init= 64)
+        self.dispatch = simpy.Container(env, capacity= dispatch_capacity, init= 75)
+#    self.dispatch_control = env.process(self.dispatch_units_control(env))
+
+def dispatch_units_control(self, env):
+    global units_made
+    yield env.timeout(0)
+    while True:
+        if self.dispatch.level >=300:
+            print('dispatch stock is {0}, calling operator of the next line to pick units at hour {1}'.format(self.dispatch.level, int(env.now/12), env.now % 8))
+            units_made += self.dispatch.level
+            yield self.dispatch.get(self.dispatch.level)
+            print('---------------------------------')
+            yield env.timeout(2)
+        else:
+            yield env.timeout(1)
+
+def station_1_op(env, production_line):
+    while True:
+        yield production_line.units.get(3)
+        station_1_time = random.gauss(mean_station_1, std_station_1)
+        yield env.timeout(station_1_time)
+        yield production_line.pre_station_2.put(3)
+
+def station_2_op(env, production_line):
+    while True:
+        yield production_line.pre_station_2.get(3)
+        station_2_time = random.gauss(mean_station_2, std_station_2)
+        yield env.timeout(station_2_time)
+        yield production_line.post_station_2.put(3)
+
+def station_3_op(env, production_line):
+    while True:
+        yield production_line.post_station_2.get(3)
+        station_3_time = random.gauss(mean_station_3, std_station_3)
+        yield env.timeout(station_3_time)
+        yield production_line.dispatch.put(3)
+
+#def test_process(env, pre_station_2):
+#    val=0.0
+#    for i in range(600):
+#        val += env.now
+#        pre_station_2.append(val)
+#        yield env.timeout(1)
+
+
+env = simpy.Environment()
+production_line = Production_line(env)
+
+station_1_op_process = env.process(station_1_op(env, production_line))
+station_2_op_process = env.process(station_2_op(env, production_line))
+station_3_op_process = env.process(station_3_op(env, production_line))
+#station_2 = env.process(test_process(env, pre_station_2))
+
+total_time_hr = 12
+total_time_sec = total_time_hr * 3600
+shift_day = 6
+total_time = total_time_sec * shift_day
+env.run(until= total_time)
+
+
+print(f'RUNNING TIME:', total_time_hr * shift_day, 'hours')
+print(f'------------------------------')
+print(f'Pre station 2 has %d units ready to be processed' % production_line.pre_station_2.level)
+print(f'Post station 3 has %d units ready to be processed' % production_line.post_station_2.level)
+print(f'Dispatch has %d units produced' % production_line.dispatch.level)
+print(f'------------------------------')
+#print(f'total units made: {0}'.format(units_made))
+print(f'------------------------------')
+print(f'SIMULATION COMPLETED')

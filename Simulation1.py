@@ -45,15 +45,15 @@ pre_station_2 = []
 
 num_station_1 = 1
 mean_station_1 = 17
-std_station_1 = 1
+std_station_1 = 2
 
 num_station_2 = 1
 mean_station_2 = 13
 std_station_2 = 2
 
 num_station_3 = 1
-mean_station_3 = 16
-std_station_3 = 1
+mean_station_3 = 15
+std_station_3 = 2
 
 #-----------------------------------------------------
 critical_stock = 30
@@ -173,9 +173,9 @@ print(f'Production line has %d units processed' % production_line.dispatch.level
 print(f'------------------------------')
 print(f'SIMULATION COMPLETED')
 
-plt.figure()
-plt.scatter(units_produced, obs_time)
-plt.show()
+#plt.figure()
+#plt.scatter(units_produced, obs_time)
+#plt.show()
 
 #plt.figure()
 #plt.step(units_produced_station_2, obs_time_2, where= 'post')
